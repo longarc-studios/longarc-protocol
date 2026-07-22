@@ -1,0 +1,306 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:longarc:protocol:effect-observation:v0",
+  "title": "Long Arc Effect Observation v0",
+  "description": "A terminal effect record that keeps authorization, attempt, observation, completion truth, and retry posture distinct.",
+  "x-longarc-protocol": "longarc.protocol.effect-observation.v0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol",
+    "effectId",
+    "authorization",
+    "attempt",
+    "observation",
+    "completion",
+    "retry"
+  ],
+  "properties": {
+    "protocol": {
+      "const": "longarc.protocol.effect-observation.v0"
+    },
+    "effectId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._:/-]{0,127}$"
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "authorityRef"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "allowed",
+            "denied"
+          ]
+        },
+        "authorityRef": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._:/-]{0,127}$"
+        }
+      }
+    },
+    "attempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "attemptId"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "not_started",
+            "started",
+            "finished"
+          ]
+        },
+        "attemptId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-z0-9][a-z0-9._:/-]{0,127}$"
+        }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "effectTruth"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "not_attempted",
+            "observed",
+            "unavailable"
+          ]
+        },
+        "effectTruth": {
+          "enum": [
+            "confirmed_applied",
+            "confirmed_not_applied",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "completion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "succeeded",
+            "failed",
+            "indeterminate"
+          ]
+        }
+      }
+    },
+    "retry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allowed",
+        "reason"
+      ],
+      "properties": {
+        "allowed": {
+          "const": false
+        },
+        "reason": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "authorization": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "allowed"
+                }
+              }
+            },
+            "attempt": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "finished"
+                },
+                "attemptId": {
+                  "type": "string"
+                }
+              }
+            },
+            "observation": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "observed"
+                },
+                "effectTruth": {
+                  "const": "confirmed_applied"
+                }
+              }
+            },
+            "completion": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "succeeded"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "authorization": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "allowed"
+                }
+              }
+            },
+            "attempt": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "finished"
+                },
+                "attemptId": {
+                  "type": "string"
+                }
+              }
+            },
+            "observation": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "observed"
+                },
+                "effectTruth": {
+                  "const": "confirmed_not_applied"
+                }
+              }
+            },
+            "completion": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "failed"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "authorization": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "allowed"
+                }
+              }
+            },
+            "attempt": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "finished"
+                },
+                "attemptId": {
+                  "type": "string"
+                }
+              }
+            },
+            "observation": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "unavailable"
+                },
+                "effectTruth": {
+                  "const": "unknown"
+                }
+              }
+            },
+            "completion": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "indeterminate"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "authorization": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "denied"
+                }
+              }
+            },
+            "attempt": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "not_started"
+                },
+                "attemptId": {
+                  "type": "null"
+                }
+              }
+            },
+            "observation": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "not_attempted"
+                },
+                "effectTruth": {
+                  "const": "confirmed_not_applied"
+                }
+              }
+            },
+            "completion": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "failed"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

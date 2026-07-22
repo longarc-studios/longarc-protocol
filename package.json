@@ -1,0 +1,16 @@
+{
+  "name": "longarc-protocol",
+  "version": "0.0.0-v0",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "scripts": {
+    "test": "node scripts/verify-v0.mjs",
+    "verify": "node scripts/verify-v0.mjs"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

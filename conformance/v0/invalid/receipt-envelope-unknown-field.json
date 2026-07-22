@@ -1,0 +1,41 @@
+{
+  "protocol": "longarc.protocol.receipt-envelope.v0",
+  "receiptId": "receipt.example.verification.0002",
+  "recordedAt": "2026-01-01T00:00:01Z",
+  "event": {
+    "kind": "verification.completed",
+    "occurredAt": "2026-01-01T00:00:00Z",
+    "outcome": "passed"
+  },
+  "evidence": {
+    "completeness": "bounded",
+    "items": [
+      {
+        "kind": "local_test",
+        "locator": "conformance:v0",
+        "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    ]
+  },
+  "authority": {
+    "basisId": "authorization.example.local.0001",
+    "scope": [
+      "local_validation"
+    ]
+  },
+  "judgment": {
+    "status": "candidate_only",
+    "subject": "longarc-protocol-v0",
+    "claimCeiling": "local_conformance"
+  },
+  "signature": {
+    "present": false,
+    "verification": "not_applicable",
+    "keyId": null
+  },
+  "nonClaims": [
+    "not_production_proof",
+    "not_publication_authority"
+  ],
+  "promoted": true
+}

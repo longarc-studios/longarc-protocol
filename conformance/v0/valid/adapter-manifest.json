@@ -1,0 +1,20 @@
+{
+  "protocol": "longarc.protocol.adapter-manifest.v0",
+  "adapterId": "example.adapter.local-counter",
+  "version": "0.1.0",
+  "displayName": "Local Counter Adapter",
+  "productNeutral": true,
+  "policyAuthority": "none",
+  "capabilities": [
+    {
+      "capability": "counter.increment",
+      "operations": [
+        "increment"
+      ],
+      "scopeKinds": [
+        "counter"
+      ],
+      "effectClass": "state_change"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "protocol": "longarc.protocol.capability-grant.v0",
+  "grantId": "grant.example.counter.0002",
+  "subject": {
+    "kind": "service",
+    "id": "example.worker"
+  },
+  "capability": "counter.increment",
+  "operation": "increment",
+  "scope": [
+    "counter:example",
+    "counter:*"
+  ],
+  "budget": {
+    "limit": 1,
+    "unit": "attempt"
+  },
+  "issuedAt": "2026-01-01T00:00:00Z",
+  "expiresAt": "2026-01-01T00:05:00Z",
+  "singleUse": true,
+  "scopeMutation": "deny_broadening",
+  "status": "active",
+  "authorityRef": "receipt.example.authorization.0001"
+}

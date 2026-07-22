@@ -1,0 +1,216 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:longarc:protocol:receipt-envelope:v0",
+  "title": "Long Arc Receipt Envelope v0",
+  "description": "A bounded envelope that keeps event fact, evidence, authority, judgment, signature state, and non-claims distinct.",
+  "x-longarc-protocol": "longarc.protocol.receipt-envelope.v0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol",
+    "receiptId",
+    "recordedAt",
+    "event",
+    "evidence",
+    "authority",
+    "judgment",
+    "signature",
+    "nonClaims"
+  ],
+  "properties": {
+    "protocol": {
+      "const": "longarc.protocol.receipt-envelope.v0"
+    },
+    "receiptId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._:/-]{0,127}$"
+    },
+    "recordedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01])T(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\dZ$"
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "occurredAt",
+        "outcome"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01])T(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\dZ$"
+        },
+        "outcome": {
+          "enum": [
+            "passed",
+            "failed",
+            "indeterminate"
+          ]
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "completeness",
+        "items"
+      ],
+      "properties": {
+        "completeness": {
+          "enum": [
+            "bounded",
+            "complete_for_claim"
+          ]
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "locator",
+              "digest"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+              },
+              "locator": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "digest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              }
+            }
+          }
+        }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "basisId",
+        "scope"
+      ],
+      "properties": {
+        "basisId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._:/-]{0,127}$"
+        },
+        "scope": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^(?!.*\\*)[a-z0-9][a-z0-9._:/-]{0,127}$"
+          }
+        }
+      }
+    },
+    "judgment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "subject",
+        "claimCeiling"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "candidate_only",
+            "accepted",
+            "rejected"
+          ]
+        },
+        "subject": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._:/-]{0,127}$"
+        },
+        "claimCeiling": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._:/-]{0,127}$"
+        }
+      }
+    },
+    "signature": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "present",
+            "verification",
+            "keyId"
+          ],
+          "properties": {
+            "present": {
+              "const": false
+            },
+            "verification": {
+              "const": "not_applicable"
+            },
+            "keyId": {
+              "type": "null"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "present",
+            "verification",
+            "keyId"
+          ],
+          "properties": {
+            "present": {
+              "const": true
+            },
+            "verification": {
+              "enum": [
+                "not_checked",
+                "verified",
+                "failed"
+              ]
+            },
+            "keyId": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._:/-]{0,127}$"
+            }
+          }
+        }
+      ]
+    },
+    "nonClaims": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
+      }
+    }
+  }
+}

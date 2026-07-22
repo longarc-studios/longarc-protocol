@@ -1,0 +1,38 @@
+{
+  "protocol": "longarc.protocol.run-plan.v0",
+  "planId": "plan.example.records.0001",
+  "executionAuthority": false,
+  "unknownCapabilityDisposition": "deny",
+  "allowedCapabilities": [
+    "record.read",
+    "receipt.write"
+  ],
+  "steps": [
+    {
+      "stepId": "step.example.read.0001",
+      "order": 0,
+      "capability": "record.read",
+      "operation": "read",
+      "grantRef": "grant.example.read.0001"
+    },
+    {
+      "stepId": "step.example.receipt.0001",
+      "order": 1,
+      "capability": "receipt.write",
+      "operation": "write",
+      "grantRef": "grant.example.write.0001"
+    }
+  ],
+  "effectBudget": {
+    "maximumAttempts": 2,
+    "externalEffects": 0
+  },
+  "terminalTruthPolicy": {
+    "allowed": [
+      "succeeded",
+      "failed",
+      "indeterminate"
+    ],
+    "normalizeIndeterminateToSuccess": false
+  }
+}

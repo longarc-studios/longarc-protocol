@@ -1,0 +1,23 @@
+{
+  "protocol": "longarc.protocol.effect-observation.v0",
+  "effectId": "effect.example.counter.0002",
+  "authorization": {
+    "status": "allowed",
+    "authorityRef": "grant.example.counter.0001"
+  },
+  "attempt": {
+    "status": "finished",
+    "attemptId": "attempt.example.counter.0002"
+  },
+  "observation": {
+    "status": "unavailable",
+    "effectTruth": "unknown"
+  },
+  "completion": {
+    "status": "succeeded"
+  },
+  "retry": {
+    "allowed": false,
+    "reason": "manual_review_required"
+  }
+}

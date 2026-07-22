@@ -1,0 +1,37 @@
+{
+  "protocol": "longarc.protocol.run-plan.v0",
+  "planId": "plan.example.records.0002",
+  "executionAuthority": false,
+  "unknownCapabilityDisposition": "deny",
+  "allowedCapabilities": [
+    "record.read"
+  ],
+  "steps": [
+    {
+      "stepId": "step.example.read.0001",
+      "order": 0,
+      "capability": "record.read",
+      "operation": "read",
+      "grantRef": "grant.example.read.0001"
+    },
+    {
+      "stepId": "step.example.network.0001",
+      "order": 1,
+      "capability": "network.send",
+      "operation": "send",
+      "grantRef": "grant.example.network.0001"
+    }
+  ],
+  "effectBudget": {
+    "maximumAttempts": 2,
+    "externalEffects": 1
+  },
+  "terminalTruthPolicy": {
+    "allowed": [
+      "succeeded",
+      "failed",
+      "indeterminate"
+    ],
+    "normalizeIndeterminateToSuccess": false
+  }
+}
