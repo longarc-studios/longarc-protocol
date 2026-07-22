@@ -1,62 +1,96 @@
 # Long Arc Protocol
 
-Long Arc Protocol is a small, dependency-free set of interoperability
-contracts for bounded agent and automation systems.
+Open protocol schemas and conformance tools for bounded agent and automation
+systems.
 
-The v0 candidate defines five independent protocol objects:
-
-| Protocol | Purpose |
-| --- | --- |
-| Receipt envelope | Keeps event facts, evidence, authority, judgment, signature state, and non-claims distinct. |
-| Capability grant | Binds one subject to one operation, bounded scope, budget, expiry, and single-use posture. |
-| Effect observation | Separates authorization, attempt, observation, and completion truth without normalizing uncertainty. |
-| Run plan | Describes finite ordered work without becoming execution authority. |
-| Adapter manifest | Declares a product-neutral adapter and its bounded capabilities without granting policy ownership. |
+Long Arc Protocol gives framework authors, platform engineers, adapter
+developers, and reviewers a product-neutral way to exchange plans, scoped
+capabilities, effect observations, adapter declarations, and receipts without
+confusing evidence with authority or an attempt with completion.
 
 ## Status
 
-This is a v0 candidate. Its schemas and fixtures are public interoperability
-contracts, not a runtime, security boundary, authorization service, judgment
-system, integration claim, or production-readiness claim.
+Long Arc Protocol is a v0 candidate. This repository defines public
+interoperability contracts and a deterministic reference verifier.
+
+It is not a runtime, authorization service, judgment system, security boundary,
+integration claim, or production-readiness claim.
 
 ## Verify locally
 
-The verifier uses only the Node.js standard library. It performs no network
-calls, environment reads, subprocess execution, telemetry, or filesystem
-writes.
+Requires Node.js 22.14 or newer. No dependency installation is needed. The
+verifier makes no network calls, reads no environment configuration, runs no
+subprocesses, sends no telemetry, and writes no files.
 
 ```sh
+git clone https://github.com/longarc-studios/longarc-protocol.git
+cd longarc-protocol
 npm test
 ```
 
-The command verifies:
+## Protocol objects
 
-- the exact thirty-path tracked repository surface;
-- package and lock metadata;
+- [Receipt envelope](schemas/v0/receipt-envelope.schema.json): Keeps event
+  facts, evidence, authority, judgment, signature state, and non-claims
+  distinct.
+- [Capability grant](schemas/v0/capability-grant.schema.json): Binds one subject
+  to one operation, bounded scope, budget, expiry, and single-use posture.
+- [Effect observation](schemas/v0/effect-observation.schema.json): Separates
+  authorization, attempt, observation, and completion truth without
+  normalizing uncertainty.
+- [Run plan](schemas/v0/run-plan.schema.json): Describes finite ordered work
+  without becoming execution authority.
+- [Adapter manifest](schemas/v0/adapter-manifest.schema.json): Declares a
+  product-neutral adapter and its bounded capabilities without granting policy
+  ownership.
+
+See the [conformance fixtures](conformance/README.md) for accepted and
+deliberately rejected examples.
+
+## What the verifier checks
+
+The verifier checks:
+
+- the expected tracked repository surface;
+- dependency-free package and lock metadata;
 - schema identity and fail-closed object shapes;
-- one positive and one negative fixture for every protocol;
+- positive and negative fixtures for every protocol;
 - cross-field protocol invariants;
-- absence of symlinks, opaque binaries, local machine paths, credential-shaped
-  text, and Git metadata in tracked content.
+- absence of symlinks, opaque binaries, local machine paths,
+  credential-shaped text, and Git metadata in tracked content.
 
-## Boundary
+A pass is bounded conformance evidence for this v0 repository. It does not
+prove that an external system executed or that an implementation is secure or
+production-ready.
 
-This repository is intentionally limited to schemas, conformance fixtures,
-documentation, and a deterministic reference verifier. Private implementations,
-orchestration, policy, product adapters, credentials, provider configuration,
-deployment machinery, and commercial services are separate.
+## Repository boundary
+
+This repository contains schemas, conformance fixtures, documentation, and a
+deterministic reference verifier.
+
+Private implementations, orchestration, policy, product adapters, credentials,
+provider configuration, deployment machinery, and commercial services remain
+separate.
 
 Implementations may use these contracts under Apache-2.0. Compatibility does
 not imply endorsement, official status, authority, or conformance unless the
-stated conformance evidence actually passes.
+stated conformance evidence passes.
 
-See [the trust model](docs/TRUST_MODEL.md),
-[the open/closed boundary](docs/OPEN_CLOSED_BOUNDARY.md), and
-[versioning](docs/VERSIONING.md).
+Read the [trust model](docs/TRUST_MODEL.md), the
+[open and closed boundary](docs/OPEN_CLOSED_BOUNDARY.md), and
+[versioning policy](docs/VERSIONING.md).
+
+## Contributing and security
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a change.
+
+Report security concerns privately through GitHub Private Vulnerability
+Reporting as described in [SECURITY.md](SECURITY.md). Do not publish sensitive
+security details in a pull request or public report.
 
 ## License and marks
 
-The code and documentation in this repository are licensed under Apache-2.0.
-The license does not grant general permission to use Long Arc names, marks, or
-logos. Truthful origin and compatibility descriptions must not imply
-endorsement, affiliation, or sponsorship.
+The code and documentation are licensed under Apache-2.0. The license does not
+grant general permission to use Long Arc names, marks, or logos. Truthful
+origin and compatibility descriptions must not imply endorsement, affiliation,
+or sponsorship.
