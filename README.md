@@ -76,6 +76,7 @@ deliberately rejected examples.
 The repository verifier checks:
 
 - the expected tracked repository surface;
+- the exact SHA-pinned, read-only public CI workflow policy;
 - dependency-free package and lock metadata;
 - schema identity and fail-closed object shapes;
 - positive and negative fixtures for every protocol;
@@ -90,11 +91,12 @@ production-ready.
 ## Repository boundary
 
 This repository contains schemas, conformance fixtures, documentation, a
-deterministic reference verifier, and the bounded offline validation CLI.
+deterministic reference verifier, the bounded offline validation CLI, and one
+minimal public CI workflow that runs the same offline verifier.
 
 Private implementations, orchestration, policy, product adapters, credentials,
-provider configuration, deployment machinery, and commercial services remain
-separate.
+private provider configuration, deployment machinery, and commercial services
+remain separate.
 
 Implementations may use these contracts under Apache-2.0. Compatibility does
 not imply endorsement, official status, authority, or conformance unless the
