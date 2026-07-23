@@ -11,7 +11,8 @@ confusing evidence with authority or an attempt with completion.
 ## Status
 
 Long Arc Protocol is a v0 candidate. This repository defines public
-interoperability contracts and a deterministic reference verifier.
+interoperability contracts, a deterministic reference verifier, and a bounded
+offline CLI for validating one local protocol document.
 
 It is not a runtime, authorization service, judgment system, security boundary,
 integration claim, or production-readiness claim.
@@ -27,6 +28,29 @@ git clone https://github.com/longarc-studios/longarc-protocol.git
 cd longarc-protocol
 npm test
 ```
+
+## Validate a protocol object
+
+The candidate CLI requires no install, account, configuration, or network
+access:
+
+```sh
+node bin/longarc-protocol.mjs list
+node bin/longarc-protocol.mjs validate \
+  conformance/v0/valid/run-plan.json
+node bin/longarc-protocol.mjs validate \
+  conformance/v0/valid/run-plan.json --json
+```
+
+It reads the selected local file and retains nothing. Its result belongs to the
+user running it and contains no creator, project-owner, or user identity. The
+result is bounded conformance evidence, not a receipt, authorization, execution
+record, judgment, or production claim. Input is limited to a stable regular
+UTF-8 file no larger than 1 MiB; diagnostics do not reflect private input
+content.
+
+See the [CLI reference](docs/CLI.md) for commands, exit codes, and the exact
+failure boundary.
 
 ## Protocol objects
 
@@ -49,7 +73,7 @@ deliberately rejected examples.
 
 ## What the verifier checks
 
-The verifier checks:
+The repository verifier checks:
 
 - the expected tracked repository surface;
 - dependency-free package and lock metadata;
@@ -65,8 +89,8 @@ production-ready.
 
 ## Repository boundary
 
-This repository contains schemas, conformance fixtures, documentation, and a
-deterministic reference verifier.
+This repository contains schemas, conformance fixtures, documentation, a
+deterministic reference verifier, and the bounded offline validation CLI.
 
 Private implementations, orchestration, policy, product adapters, credentials,
 provider configuration, deployment machinery, and commercial services remain

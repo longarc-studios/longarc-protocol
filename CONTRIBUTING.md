@@ -5,8 +5,8 @@ reproducible evidence.
 
 ## Before submitting
 
-1. Keep the change inside the public schemas, fixtures, verifier, or
-   documentation.
+1. Keep the change inside the public schemas, fixtures, validation library,
+   bounded CLI, verifier, tests, or documentation.
 2. Do not copy private source, private tests, internal names, product material,
    credentials, provider configuration, or unpublished history.
 3. Describe the source and provenance of the contribution.

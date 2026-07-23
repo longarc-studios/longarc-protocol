@@ -4,12 +4,16 @@
   "private": true,
   "type": "module",
   "license": "Apache-2.0",
+  "bin": {
+    "longarc-protocol": "bin/longarc-protocol.mjs"
+  },
   "engines": {
     "node": ">=22.14.0"
   },
   "scripts": {
-    "test": "node scripts/verify-v0.mjs",
-    "verify": "node scripts/verify-v0.mjs"
+    "test": "node scripts/verify-v0.mjs && node --test test/*.test.mjs",
+    "verify": "npm test",
+    "cli": "node bin/longarc-protocol.mjs"
   },
   "dependencies": {},
   "devDependencies": {}
