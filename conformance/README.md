@@ -14,5 +14,14 @@ target a load-bearing boundary:
 Run `npm test` from the repository root. A valid fixture must be accepted, and
 its paired invalid fixture must be rejected for the intended reason.
 
+The same public validation path is available through the candidate CLI:
+
+```sh
+node bin/longarc-protocol.mjs validate \
+  conformance/v0/valid/capability-grant.json
+node bin/longarc-protocol.mjs validate \
+  conformance/v0/invalid/capability-grant-scope-broadening.json --json
+```
+
 Conformance is bounded to these schemas and semantic checks. It is not
 execution, integration, security, publication, release, or production proof.

@@ -6,6 +6,8 @@ import { lstat, readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { validateV0Document } from '../src/validate-v0.mjs';
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const expectedLicenseSha256 = 'c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4';
 const expectedPaths = Object.freeze([
@@ -17,6 +19,7 @@ const expectedPaths = Object.freeze([
   'NOTICE',
   'README.md',
   'SECURITY.md',
+  'bin/longarc-protocol.mjs',
   'conformance/README.md',
   'conformance/v0/invalid/adapter-manifest-product-binding.json',
   'conformance/v0/invalid/capability-grant-scope-broadening.json',
@@ -28,6 +31,7 @@ const expectedPaths = Object.freeze([
   'conformance/v0/valid/effect-observation.json',
   'conformance/v0/valid/receipt-envelope.json',
   'conformance/v0/valid/run-plan.json',
+  'docs/CLI.md',
   'docs/OPEN_CLOSED_BOUNDARY.md',
   'docs/TRUST_MODEL.md',
   'docs/VERSIONING.md',
@@ -39,6 +43,8 @@ const expectedPaths = Object.freeze([
   'schemas/v0/receipt-envelope.schema.json',
   'schemas/v0/run-plan.schema.json',
   'scripts/verify-v0.mjs',
+  'src/validate-v0.mjs',
+  'test/cli.test.mjs',
 ]);
 const expectedPackage = Object.freeze({
   name: 'longarc-protocol',
@@ -46,12 +52,16 @@ const expectedPackage = Object.freeze({
   private: true,
   type: 'module',
   license: 'Apache-2.0',
+  bin: {
+    'longarc-protocol': 'bin/longarc-protocol.mjs',
+  },
   engines: {
     node: '>=22.14.0',
   },
   scripts: {
-    test: 'node scripts/verify-v0.mjs',
-    verify: 'node scripts/verify-v0.mjs',
+    test: 'node scripts/verify-v0.mjs && node --test test/*.test.mjs',
+    verify: 'npm test',
+    cli: 'node bin/longarc-protocol.mjs',
   },
   dependencies: {},
   devDependencies: {},
@@ -417,8 +427,8 @@ assert.equal(isRootGitAdministrativeEntry('nested', '.git'), false);
 assert.equal(isRootGitAdministrativeEntry('', '.github'), false);
 
 const files = sorted(await walk());
-assert.deepEqual(files, sorted(expectedPaths), 'tracked repository surface differs from exact thirty-path allowlist');
-assert.equal(files.length, 30, 'repository must contain exactly thirty files');
+assert.deepEqual(files, sorted(expectedPaths), 'tracked repository surface differs from exact thirty-four-path allowlist');
+assert.equal(files.length, 34, 'repository must contain exactly thirty-four files');
 
 const decoder = new TextDecoder('utf-8', { fatal: true });
 for (const relativePath of files) {
@@ -436,7 +446,6 @@ assert.deepEqual(packageJson, expectedPackage, 'package metadata differs from ad
 assert.deepEqual(Object.keys(packageJson.dependencies), [], 'runtime dependencies must remain empty');
 assert.deepEqual(Object.keys(packageJson.devDependencies), [], 'development dependencies must remain empty');
 for (const forbidden of [
-  'bin',
   'bugs',
   'files',
   'homepage',
@@ -467,6 +476,7 @@ assert.deepEqual(Object.keys(lock.packages), [''], 'lock contains unexpected pac
 assert.equal(lock.packages[''].name, expectedPackage.name, 'lock root name changed');
 assert.equal(lock.packages[''].version, expectedPackage.version, 'lock root version changed');
 assert.equal(lock.packages[''].license, expectedPackage.license, 'lock root license changed');
+assert.deepEqual(lock.packages[''].bin, expectedPackage.bin, 'lock root bin changed');
 assert.deepEqual(lock.packages[''].engines, expectedPackage.engines, 'lock root engine changed');
 assert.equal(Object.hasOwn(lock, 'dependencies'), false, 'lock dependency graph must be absent');
 
@@ -510,6 +520,13 @@ for (const spec of protocolSpecs) {
   validFixtures.set(spec.id, valid);
   const positiveErrors = validateProtocol(schema, spec.id, valid);
   assert.deepEqual(positiveErrors, [], spec.id + ' valid fixture rejected:\n' + positiveErrors.join('\n'));
+  const operationalPositive = await validateV0Document(valid);
+  assert.equal(operationalPositive.valid, true, spec.id + ': operational validator rejected valid fixture');
+  assert.equal(
+    operationalPositive.claimCeiling,
+    'local_conformance_only',
+    spec.id + ': operational validator widened or removed its claim ceiling',
+  );
 
   const invalid = await readJson(spec.invalidPath);
   const negativeErrors = validateProtocol(schema, spec.id, invalid);
@@ -519,12 +536,23 @@ for (const spec of protocolSpecs) {
     true,
     spec.id + ': invalid fixture failed for the wrong boundary:\n' + negativeErrors.join('\n'),
   );
+  const operationalNegative = await validateV0Document(invalid);
+  assert.equal(
+    operationalNegative.valid,
+    false,
+    spec.id + ': operational validator accepted invalid fixture',
+  );
+  assert.equal(
+    operationalNegative.claimCeiling,
+    'no_conformance_claim',
+    spec.id + ': failed operational validation retained a conformance claim',
+  );
 }
 
-function mutated(protocolId, update) {
+function mutatedValue(protocolId, update) {
   const value = structuredClone(validFixtures.get(protocolId));
   update(value);
-  return validateProtocol(schemas.get(protocolId), protocolId, value);
+  return value;
 }
 
 const negativeControls = [
@@ -620,7 +648,17 @@ const negativeControls = [
   ],
 ];
 for (const [name, protocolId, update] of negativeControls) {
-  assert.equal(mutated(protocolId, update).length > 0, true, 'negative control accepted: ' + name);
+  const value = mutatedValue(protocolId, update);
+  assert.equal(
+    validateProtocol(schemas.get(protocolId), protocolId, value).length > 0,
+    true,
+    'reference verifier accepted negative control: ' + name,
+  );
+  assert.equal(
+    (await validateV0Document(value)).valid,
+    false,
+    'operational validator accepted negative control: ' + name,
+  );
 }
 
 const unsupportedKeywordSchema = structuredClone(
@@ -639,6 +677,7 @@ const imports = verifierSource
   .filter((line) => line.startsWith('import '))
   .map((line) => line.split("'")[1]);
 assert.deepEqual(sorted(imports), sorted([
+  '../src/validate-v0.mjs',
   'node:assert/strict',
   'node:crypto',
   'node:fs/promises',
@@ -657,6 +696,39 @@ for (const forbiddenOperation of [
 ]) {
   assert.equal(verifierSource.includes(forbiddenOperation), false, 'verifier side-effect surface: ' + forbiddenOperation);
 }
+
+const operationalSources = new Map([
+  [
+    'bin/longarc-protocol.mjs',
+    await readFile(path.join(root, 'bin/longarc-protocol.mjs'), 'utf8'),
+  ],
+  [
+    'src/validate-v0.mjs',
+    await readFile(path.join(root, 'src/validate-v0.mjs'), 'utf8'),
+  ],
+]);
+for (const [relativePath, source] of operationalSources) {
+  for (const forbiddenOperation of [
+    ['fetch', '('].join(''),
+    ['write', 'File', '('].join(''),
+    ['append', 'File', '('].join(''),
+    ['child_', 'process'].join(''),
+    ['process', '.env'].join(''),
+    ['Date', '.now', '('].join(''),
+    ['Math', '.random', '('].join(''),
+  ]) {
+    assert.equal(
+      source.includes(forbiddenOperation),
+      false,
+      relativePath + ': operational side-effect surface: ' + forbiddenOperation,
+    );
+  }
+}
+assert.equal(
+  operationalSources.get('src/validate-v0.mjs').includes('process.'),
+  false,
+  'validation library must remain process-independent',
+);
 
 const syntheticHomePath = '/' + ['Users', 'example', 'candidate'].join('/');
 const syntheticUnixHomePath = '/' + ['home', 'example', 'candidate'].join('/');
@@ -678,10 +750,10 @@ assert.equal(containsCredential(syntheticPrivateKeyHeader), true);
 assert.equal(containsCredential(syntheticApiKey), true);
 assert.equal(containsCredential('bounded public protocol fixture'), false);
 
-console.log('PASS: exact thirty-path tracked surface contains only regular UTF-8 text files; root Git administration is excluded');
-console.log('PASS: package and lock are dependency-free, non-publishable, lifecycle-script-free, and policy-exact');
-console.log('PASS: 5 schemas accept 5 positive fixtures and reject 5 boundary-specific negative fixtures');
+console.log('PASS: exact thirty-four-path tracked surface contains only regular UTF-8 text files; root Git administration is excluded');
+console.log('PASS: package and lock are dependency-free, private, lifecycle-script-free, and expose only the bounded candidate CLI');
+console.log('PASS: 5 schemas and the operational validator accept 5 positive fixtures and reject 5 boundary-specific negative fixtures');
 console.log('PASS: 17 negative controls preserve schema coverage, structural uniqueness, canonical time, evidence, authority, signature, scope, effect-truth, plan, and adapter boundaries');
-console.log('PASS: verifier is deterministic, standard-library-only, read-only, environment-independent, and network-free');
+console.log('PASS: verifier, validator, and CLI are standard-library-only, read-only, environment-independent, and network-free');
 console.log('PASS: local paths, credentials, opaque binaries, symlinks, unknown paths, and license drift fail closed');
-console.log('PASS: local conformance candidate only; no publication, integration, release, security, or production claim made');
+console.log('PASS: local conformance and offline CLI candidate only; no receipt, execution, publication, integration, release, security, or production claim made');

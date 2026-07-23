@@ -7,6 +7,7 @@ Long Arc Protocol uses a narrow open-interface model.
 - five versioned JSON Schemas;
 - positive and negative conformance fixtures;
 - a dependency-free reference verifier;
+- a dependency-free offline CLI that validates one local protocol document;
 - protocol, trust, contribution, security, and versioning documentation;
 - Apache-2.0 license and attribution.
 
@@ -18,6 +19,7 @@ test the same fail-closed rules.
 - private implementation source and tests;
 - orchestration, routing, evaluation, and judgment policy;
 - runtime safety controls and privileged execution;
+- receipt creation, authority issuance, signing, and identity custody;
 - product-specific adapters, interfaces, and user data;
 - secrets, credentials, provider configuration, and deployment state;
 - commercial services, support systems, and operational telemetry;
