@@ -10,8 +10,10 @@ import { validateV0Document } from '../src/validate-v0.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const expectedLicenseSha256 = 'c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4';
+const expectedCiWorkflowSha256 = 'acaedd64ae79d671550d5fcf08a2618ea96ca42f658dc0cc0357686959cdef31';
 const expectedPaths = Object.freeze([
   '.gitattributes',
+  '.github/workflows/offline-conformance.yml',
   '.gitignore',
   'CODE_OF_CONDUCT.md',
   'CONTRIBUTING.md',
@@ -427,8 +429,8 @@ assert.equal(isRootGitAdministrativeEntry('nested', '.git'), false);
 assert.equal(isRootGitAdministrativeEntry('', '.github'), false);
 
 const files = sorted(await walk());
-assert.deepEqual(files, sorted(expectedPaths), 'tracked repository surface differs from exact thirty-four-path allowlist');
-assert.equal(files.length, 34, 'repository must contain exactly thirty-four files');
+assert.deepEqual(files, sorted(expectedPaths), 'tracked repository surface differs from exact thirty-five-path allowlist');
+assert.equal(files.length, 35, 'repository must contain exactly thirty-five files');
 
 const decoder = new TextDecoder('utf-8', { fatal: true });
 for (const relativePath of files) {
@@ -440,6 +442,55 @@ for (const relativePath of files) {
   assert.equal(text.endsWith('\n'), true, relativePath + ': final newline required');
   assert.equal(text.endsWith('\n\n'), false, relativePath + ': multiple terminal newlines rejected');
 }
+
+const ciWorkflowBytes = await readFile(path.join(root, '.github/workflows/offline-conformance.yml'));
+const ciWorkflowText = decoder.decode(ciWorkflowBytes);
+assert.equal(
+  sha256(ciWorkflowBytes),
+  expectedCiWorkflowSha256,
+  'CI workflow differs from the exact admitted policy',
+);
+for (const requiredWorkflowFragment of [
+  'pull_request:',
+  'permissions:\n  contents: read',
+  'runs-on: ubuntu-24.04',
+  'timeout-minutes: 5',
+  'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1',
+  'persist-credentials: false',
+  'actions/setup-node@820762786026740c76f36085b0efc47a31fe5020',
+  "node-version: '22.14.0'",
+  'check-latest: false',
+  'package-manager-cache: false',
+  "token: ''",
+  'run: npm test',
+]) {
+  assert.equal(
+    ciWorkflowText.includes(requiredWorkflowFragment),
+    true,
+    'CI workflow missing admitted fragment: ' + requiredWorkflowFragment,
+  );
+}
+for (const forbiddenWorkflowFragment of [
+  'pull_request_target:',
+  'workflow_run:',
+  'self-hosted',
+  'contents: write',
+  '${{ secrets.',
+  'npm install',
+  'npm ci',
+]) {
+  assert.equal(
+    ciWorkflowText.includes(forbiddenWorkflowFragment),
+    false,
+    'CI workflow contains forbidden fragment: ' + forbiddenWorkflowFragment,
+  );
+}
+const unsafeCiWorkflowMutation = ciWorkflowText.replace('contents: read', 'contents: write');
+assert.notEqual(
+  sha256(Buffer.from(unsafeCiWorkflowMutation, 'utf8')),
+  expectedCiWorkflowSha256,
+  'CI workflow hash guard accepted a write-permission mutation',
+);
 
 const packageJson = await readJson('package.json');
 assert.deepEqual(packageJson, expectedPackage, 'package metadata differs from admitted policy');
@@ -750,7 +801,8 @@ assert.equal(containsCredential(syntheticPrivateKeyHeader), true);
 assert.equal(containsCredential(syntheticApiKey), true);
 assert.equal(containsCredential('bounded public protocol fixture'), false);
 
-console.log('PASS: exact thirty-four-path tracked surface contains only regular UTF-8 text files; root Git administration is excluded');
+console.log('PASS: exact thirty-five-path tracked surface contains only regular UTF-8 text files; root Git administration is excluded');
+console.log('PASS: exact CI workflow is SHA-pinned, read-only, repository-secret-free, package-manager-cache-disabled, and limited to the offline test command');
 console.log('PASS: package and lock are dependency-free, private, lifecycle-script-free, and expose only the bounded candidate CLI');
 console.log('PASS: 5 schemas and the operational validator accept 5 positive fixtures and reject 5 boundary-specific negative fixtures');
 console.log('PASS: 17 negative controls preserve schema coverage, structural uniqueness, canonical time, evidence, authority, signature, scope, effect-truth, plan, and adapter boundaries');
